@@ -4135,6 +4135,8 @@ function mario:shrink()
 	end
 	
 	if mariomakerphysics and self.size > 2 and self.size ~= 12 and self.size ~= 8 then --shrink to big mario
+		self.customcolors = false -- Reset makesmariocolor
+		
 		self.size = 2
 		self:setsize(2)
 		self.color = self.basecolors
