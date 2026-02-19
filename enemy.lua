@@ -2526,8 +2526,17 @@ function enemy:customtimeraction(action, arg, arg2)
 		elseif a == "concat" then
 			self[p] = self[p] .. arg
 		elseif a == "split" then
-			if tostring(self[p]) and tostring(arg) then
-				self[p] = tostring(self[p]):split(tostring(arg))
+			if (type(self[p]) == "string" or tostring(self[p])) then
+				local str = tostring(self[p])
+				if not arg then
+					-- split every character,. i f##king hate this but i couldn't find a cleaner way to do it.
+					self[p] = {}
+					for i = 1, #str do
+						table.insert(self[p], string.sub(str, i, i))
+					end
+				elseif (type(arg) == "string" or tostring(arg)) then
+					self[p] = str:split(tostring(arg))
+				end
 			end
 
 		elseif a == "if" then
