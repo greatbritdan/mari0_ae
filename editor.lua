@@ -5489,6 +5489,11 @@ function buttonsetoptions(typ)
 		{{directionsimg, directionsquad["right down"]}, "right down"},
 		{{directionsimg, directionsquad["down"]}, "down"},
 		{{directionsimg, directionsquad["left down"]}, "left down"}}
+	elseif typ == "diagonaldir" then
+		return {{{directionsimg, directionsquad["left up"]}, "left up"},
+		{{directionsimg, directionsquad["right up"]}, "right up"},
+		{{directionsimg, directionsquad["right down"]}, "right down"},
+		{{directionsimg, directionsquad["left down"]}, "left down"}}
 	end
 end
 
@@ -5695,7 +5700,7 @@ function openrightclickmenu(x, y, tileX, tileY)
 				local ni = index
 				local set = buttonsetoptions(v.rightclick[i][3])
 
-				local buttonsstart = #rightclickobjects
+				local buttonsstart = #rightclickobjects+1
 				for i = 1, #set do
 					--button press function
 					local buttonfunc = function(variablenum, dir, obj, objstart, objs)
