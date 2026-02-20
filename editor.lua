@@ -4452,13 +4452,16 @@ function placetile(x, y, tilei)
 				elseif v.rightclick then
 					local default = ""
 					local b = v.rightclickdefaults
-					for i = 1, #b-1 do
-						default = default .. tostring(b[i]) .. "|"
+					for i = 1, #b do
+						if type(b[i]) == "table" then
+							for j = 1, #b[i] do -- ranges, i know people might want to use a table
+								default = default .. tostring(b[i][j]) .. "|"
+							end
+						else
+							default = default .. tostring(b[i]) .. "|"
+						end
 					end
-					default = default .. b[#b]
-					default = default:gsub("-", "B")
-
-					map[cox][coy][3] = default
+					map[cox][coy][3] = default:sub(1,-2):gsub("-", "B")
 				end
 				for i = 4, #map[cox][coy] do
 					map[cox][coy][i] = nil
@@ -5455,6 +5458,40 @@ function editor_mousepressed(x, y, button)
 	end
 end
 
+-- avoid duplication
+function buttonsetoptions(typ)
+	if typ == "dir" then
+		return {{{directionsimg, directionsquad["left"]}, "left"},
+		{{directionsimg, directionsquad["up"]}, "up"},
+		{{directionsimg, directionsquad["right"]}, "right"},
+		{{directionsimg, directionsquad["down"]}, "down"}}
+	elseif typ == "hordir" then
+		return {{{directionsimg, directionsquad["left"]}, "left"},
+		{{directionsimg, directionsquad["right"]}, "right"}}
+	elseif typ == "verdir" then
+		return {{{directionsimg, directionsquad["up"]}, "up"},
+		{{directionsimg, directionsquad["down"]}, "down"}}
+	elseif typ == "rotdir" then
+		return {{{directionsimg, directionsquad["cw"]}, "right"},
+		{{directionsimg, directionsquad["ccw"]}, "left"}}
+	elseif typ == "rot" then
+		return {{{directionsimg, directionsquad["cw"]}, "cw"},
+		{{directionsimg, directionsquad["ccw"]}, "ccw"}}
+	elseif typ == "orientation" then
+		return {{{directionsimg, directionsquad["hor"]}, "hor"},
+		{{directionsimg, directionsquad["ver"]}, "ver"}}
+	elseif typ == "angle" then
+		return {{{directionsimg, directionsquad["left"]}, "left"},
+		{{directionsimg, directionsquad["left up"]}, "left up"},
+		{{directionsimg, directionsquad["up"]}, "up"},
+		{{directionsimg, directionsquad["right up"]}, "right up"},
+		{{directionsimg, directionsquad["right"]}, "right"},
+		{{directionsimg, directionsquad["right down"]}, "right down"},
+		{{directionsimg, directionsquad["down"]}, "down"},
+		{{directionsimg, directionsquad["left down"]}, "left down"}}
+	end
+end
+
 function openrightclickmenu(x, y, tileX, tileY)
 	local r = map[tileX][tileY]
 	local tile = r[2]
@@ -5566,10 +5603,10 @@ function openrightclickmenu(x, y, tileX, tileY)
 
 		local default = ""
 		local b = v.rightclickdefaults
-		for i = 1, #b-1 do
-			default = default .. tostring(b[i]) .. "|"
+		for i = 1, #b do
+			local splitter = (i < #b) and "|" or ""
+			default = default .. tostring(b[i]) .. splitter
 		end
-		default = default .. b[#b]
 		default = default:gsub("-", "B")
 
 		local usingdefaultvalues = false
@@ -5611,22 +5648,37 @@ function openrightclickmenu(x, y, tileX, tileY)
 				local ni = index
 				local var = vt[index]
 				local ents = v.rightclick[i][4]
+				local displayents = v.rightclick[i][5]
 				if tostring(var) then
 					local target = tostring(var):gsub("B", "-")
 					var = tablecontainsistring(ents, target)
 					vt[index] = var
 				end
-			
-				local obj = guielement:new("dropdown", rx, ry, v.rightclick[i][3], function(v) rightclickobjects[obj].var = v; vt[ni] = v end, vt[index], unpack(ents))
-				if v.rightclick[i][5] then
-					obj.displayentries = deepcopy(v.rightclick[i][5])
+				
+				-- get longest name
+				local dropwidth = v.rightclick[i][3]
+				if not dropwidth then
+					dropwidth = 0
+					local list = displayents or ents
+					for i = 1, #list do
+						if #list[i] > dropwidth then dropwidth = #list[i] end
+					end
+				end
+
+				local obj = guielement:new("dropdown", rx, ry, dropwidth, function(v) rightclickobjects[obj].var = v; vt[ni] = v end, vt[index], unpack(ents))
+				if displayents then
+					obj.displayentries = deepcopy(displayents)
 				end
 				table.insert(rightclickobjects, obj)
-				width = v.rightclick[i][3]*8+13
+				width = dropwidth*8+13
 				addv = 15
 			elseif v.rightclick[i][1] == "input" then
 				local ni = index
-				table.insert(rightclickobjects, guielement:new("input", rx, ry, v.rightclick[i][3], function(v) vt[ni] = v end, vt[index], v.rightclick[i][3], 1, "rightclick"))
+				local chars = v.rightclick[i][3]
+				if v.rightclick[i][4] and tonumber(v.rightclick[i][4]) then
+					chars = v.rightclick[i][4]
+				end
+				table.insert(rightclickobjects, guielement:new("input", rx, ry, v.rightclick[i][3], function(v) vt[ni] = v end, vt[index], chars, 1, "rightclick"))
 				width = v.rightclick[i][3]*8+5
 				addv = 16
 			elseif v.rightclick[i][1] == "checkbox" then
@@ -5639,6 +5691,94 @@ function openrightclickmenu(x, y, tileX, tileY)
 				table.insert(rightclickobjects, guielement:new("checkbox", rx, ry+2, function(v) rightclickobjects[obj].var = v; vt[ni] = v end, var, v.rightclick[i][3] or ""))
 				width = #v.rightclick[i][3]*8+10
 				addv = 13
+			elseif v.rightclick[i][1] == "buttonset" then
+				local ni = index
+				local set = buttonsetoptions(v.rightclick[i][3])
+
+				local buttonsstart = #rightclickobjects
+				for i = 1, #set do
+					--button press function
+					local buttonfunc = function(variablenum, dir, obj, objstart, objs)
+						--set variable and update button color
+						vt[ni] = dir
+						for i = objstart, objstart+objs-1 do
+							if i == obj then
+								rightclickobjects[i].bordercolorhigh = {255,127,127}
+								rightclickobjects[i].bordercolor = {255,0,0}
+							else
+								rightclickobjects[i].bordercolorhigh = {255,255,255}
+								rightclickobjects[i].bordercolor = {127,127,127}
+							end
+						end
+					end
+					local b = guielement:new("button", rx+width, ry, set[i][1], buttonfunc, 0, {ni, set[i][2], #rightclickobjects+1, buttonsstart, #set}, 1, 8)
+					if vt[ni] == set[i][2] then--is the direction selected
+						b.bordercolorhigh = {255, 127, 127}
+						b.bordercolor = {255, 0, 0}
+					end
+					table.insert(rightclickobjects, b)
+					width = width+8+4
+				end
+				addv = 14
+			elseif v.rightclick[i][1] == "slider" then
+				local ni = index
+				local d = guielement:new("scrollbar", rx, ry, 100, 33, 9, vt[ni], "hor")
+				d.backgroundcolor = {0,0,0}
+				d.scrollstep = 0
+				d.rightclickvalue = ni
+
+				local range = {0, 100, round=1, step=1}
+				if v.rightclick[i][3] then
+					if v.rightclick[i][3][1] then range[1] = v.rightclick[i][3][1] end
+					if v.rightclick[i][3][2] then range[2] = v.rightclick[i][3][2] end
+					if v.rightclick[i][3][3] then range.round = v.rightclick[i][3][3] end
+					if v.rightclick[i][3][4] then range.step = v.rightclick[i][3][4] end
+				end
+
+				local val = vt[ni]:gsub("n", "-")
+				d.value = (tonumber(val)-range[1])/(range[2]-range[1])
+				d.rcrange = range
+
+				--convert to value for saving
+				d.updatefunc = function(self, val)
+					local min, max, rnd, step = self.rcrange[1], self.rcrange[2], self.rcrange.round, self.rcrange.step
+					local s
+					if step then
+						s = math.floor(((val*(max-min))+min) * (1/step)) /(1/step)
+					else
+						s = round((val*(max-min))+min, rnd or 2)
+					end
+					vt[self.rightclickvalue] = tostring(s):gsub("-", "n")
+				end
+
+				--what's displayed in slider
+				d.displayfunction = function(self, val)
+					local min, max, rnd, step = self.rcrange[1], self.rcrange[2], self.rcrange.round, self.rcrange.step
+					local s
+					if step then
+						s = math.floor(((val*(max-min))+min) * (1/step)) /(1/step)
+					else
+						s = round((val*(max-min))+min, rnd or 2)
+					end
+					if math.floor(s) ~= s or string.len(s) <= math.floor(self.width/8)-2 then
+						return formatscrollnumber(s)
+					else
+						return s
+					end
+				end
+
+				d:updatefunc(d.value)
+				table.insert(rightclickobjects, d)
+				width = 100
+				addv = 12
+			elseif v.rightclick[i][1] == "range" then
+				local ni = index
+				local _step = 1 / v.rightclick[i][3]
+				local b = guielement:new("button", rx, ry, " set range ", function(var, step) startrcregion(var, step, true) end, 1, {ni, _step})
+				index = index + 3 -- as the range needs to store 4 vaues, skip 3 ahead so no overlapping happens.
+				table.insert(rightclickobjects, b)
+				width = (11*8)+6
+				addv = 14
 			end
 
 			if width+8 > rightclickobjects.width then
@@ -5772,39 +5912,9 @@ function openrightclickmenu(x, y, tileX, tileY)
 						width = #t[3]*8+6
 					end
 					addv = 14
-				elseif obj == "dirbuttonset" or obj == "hordirbuttonset" or obj == "verdirbuttonset" or obj == "rotdirbuttonset" or obj == "rotbuttonset" or obj == "orientationbuttonset" or obj == "anglebuttonset" then
+				elseif obj:sub(-9,-1) == "buttonset" then
 					--buttons for 4 directions
-					local bt
-					if obj == "dirbuttonset" then
-						bt = {{{directionsimg, directionsquad["left"]}, "left"},
-						{{directionsimg, directionsquad["up"]}, "up"},
-						{{directionsimg, directionsquad["right"]}, "right"},
-						{{directionsimg, directionsquad["down"]}, "down"}}
-					elseif obj == "hordirbuttonset" then
-						bt = {{{directionsimg, directionsquad["left"]}, "left"},
-						{{directionsimg, directionsquad["right"]}, "right"}}
-					elseif obj == "verdirbuttonset" then
-						bt = {{{directionsimg, directionsquad["up"]}, "up"},
-						{{directionsimg, directionsquad["down"]}, "down"}}
-					elseif obj == "rotdirbuttonset" then
-						bt = {{{directionsimg, directionsquad["cw"]}, "right"},
-						{{directionsimg, directionsquad["ccw"]}, "left"}}
-					elseif obj == "rotbuttonset" then
-						bt = {{{directionsimg, directionsquad["cw"]}, "cw"},
-						{{directionsimg, directionsquad["ccw"]}, "ccw"}}
-					elseif obj == "orientationbuttonset" then
-						bt = {{{directionsimg, directionsquad["hor"]}, "hor"},
-						{{directionsimg, directionsquad["ver"]}, "ver"}}
-					elseif obj == "anglebuttonset" then
-						bt = {{{directionsimg, directionsquad["left"]}, "left"},
-						{{directionsimg, directionsquad["left up"]}, "left up"},
-						{{directionsimg, directionsquad["up"]}, "up"},
-						{{directionsimg, directionsquad["right up"]}, "right up"},
-						{{directionsimg, directionsquad["right"]}, "right"},
-						{{directionsimg, directionsquad["right down"]}, "right down"},
-						{{directionsimg, directionsquad["down"]}, "down"},
-						{{directionsimg, directionsquad["left down"]}, "left down"}}
-					end
+					local bt = buttonsetoptions(obj:sub(1,-10))
 					local buttonsstart = #rightclickobjects+1
 					for i = 1, #bt do
 						--button press function
@@ -5998,6 +6108,8 @@ function closecustomrc(save)
 								vt[index] = tostring(ents[vt[index]])
 								vt[index] = vt[index]:gsub("-", "B")
 							end
+						elseif v.rightclick[i][1] == "range" then
+							index = index + 3
 						end
 					end
 				end
@@ -6057,27 +6169,36 @@ function closecustomrc(save)
 	customrcopen = false
 end
 
-function startrcregion(var, step)
+function startrcregion(var, step, customenemy)
 	local var = var or 1
 	if editorstate == "linktool" then
 		editorstate = "tools"
 	end
-	
-	local r = map[rightclickmenucox][rightclickmenucoy]
 
 	local x, y
-	if rightclickvalues2[var+2] and rightclickvalues2[var+3] then
-		x, y = rightclickvalues2[var+2]:gsub("n", "-"), rightclickvalues2[var+3]:gsub("n", "-")
+	if customenemy then
+		x, y = rightclickvalues2[var]:gsub("B", "-"), rightclickvalues2[var+1]:gsub("B", "-")
 		x = rightclickmenucox-1+tonumber(x)
 		y = rightclickmenucoy-1+tonumber(y)
+		guielements["rightclickdrag"] = regiondrag:new(tonumber(rightclickvalues2[var+2]), tonumber(rightclickvalues2[var+3]), x, y)
+	else
+		if rightclickvalues2[var+2] and rightclickvalues2[var+3] then
+			x, y = rightclickvalues2[var+2]:gsub("n", "-"), rightclickvalues2[var+3]:gsub("n", "-")
+			x = rightclickmenucox-1+tonumber(x)
+			y = rightclickmenucoy-1+tonumber(y)
+		end
+		guielements["rightclickdrag"] = regiondrag:new(tonumber(rightclickvalues2[var]), tonumber(rightclickvalues2[var+1]), x or rightclickmenucox-1, y or rightclickmenucoy-1)
 	end
-	guielements["rightclickdrag"] = regiondrag:new(tonumber(rightclickvalues2[var]), tonumber(rightclickvalues2[var+1]), x or rightclickmenucox-1, y or rightclickmenucoy-1)
 	guielements["rightclickdrag"].vars = deepcopy(rightclickvalues2)
 	guielements["rightclickdrag"].cox = rightclickmenucox-1
 	guielements["rightclickdrag"].coy = rightclickmenucoy-1
+	if customenemy then
+		guielements["rightclickdrag"].var = var -- custom enemies
+	end
 	if step then
 		guielements["rightclickdrag"].step = step
 	end
+
 	closecustomrc(true)
 	rightclickobjects = {}
 	customrcopen = "region"
@@ -6085,17 +6206,31 @@ function startrcregion(var, step)
 end
 
 function rcrtsize() --right click region trigger size
-	local w = tostring(guielements["rightclickdrag"].width):gsub("-", "n") --change - to n to make level load properly
-	local h = tostring(guielements["rightclickdrag"].height):gsub("-", "n")
-	local x = tostring(guielements["rightclickdrag"].x-guielements["rightclickdrag"].cox):gsub("-", "n")
-	local y = tostring(guielements["rightclickdrag"].y-guielements["rightclickdrag"].coy):gsub("-", "n")
-
 	rightclickvalues2 = deepcopy(guielements["rightclickdrag"].vars)
-	
+
 	local r = map[rightclickmenucox][rightclickmenucoy]
-	customrcopen = entitylist[r[2]].t
-	if rightclicktype[customrcopen].regionfunc then
-		rightclicktype[customrcopen].regionfunc(w,h,x,y)
+	if guielements["rightclickdrag"].var then -- custom enemy
+		local x = tostring(guielements["rightclickdrag"].x-guielements["rightclickdrag"].cox):gsub("-", "B")
+		local y = tostring(guielements["rightclickdrag"].y-guielements["rightclickdrag"].coy):gsub("-", "B")
+		local w = tostring(guielements["rightclickdrag"].width):gsub("-", "B") --change - to B to make level load properly
+		local h = tostring(guielements["rightclickdrag"].height):gsub("-", "B")
+
+		local var = guielements["rightclickdrag"].var
+		customrcopen = "custom_enemy"
+		rightclickvalues2[var] = x
+		rightclickvalues2[var+1] = y
+		rightclickvalues2[var+2] = w
+		rightclickvalues2[var+3] = h
+	else
+		local w = tostring(guielements["rightclickdrag"].width):gsub("-", "n") --change - to n to make level load properly
+		local h = tostring(guielements["rightclickdrag"].height):gsub("-", "n")
+		local x = tostring(guielements["rightclickdrag"].x-guielements["rightclickdrag"].cox):gsub("-", "n")
+		local y = tostring(guielements["rightclickdrag"].y-guielements["rightclickdrag"].coy):gsub("-", "n")
+
+		customrcopen = entitylist[r[2]].t
+		if rightclicktype[customrcopen].regionfunc then
+			rightclicktype[customrcopen].regionfunc(w,h,x,y)
+		end
 	end
 	closecustomrc(true)
 	guielements["rightclickdrag"] = nil
