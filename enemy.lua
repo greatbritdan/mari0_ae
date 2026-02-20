@@ -158,7 +158,17 @@ function enemy:init(x, y, t, a, properties)
 		local val
 		-- types
 		if self.rightclicktypes then
-			val = convertr(self.a[3], self.rightclicktypes)
+			local types = self.rightclicktypes
+			for i = 1, #self.rightclicktypes do
+				if type(self.rightclicktypes[i]) == "table" then
+					for j = 1, #self.rightclicktypes[i] do
+						table.insert(types, self.rightclicktypes[i][j])
+					end
+				else
+					table.insert(types, self.rightclicktypes[i])
+				end
+			end
+			val = convertr(self.a[3], types)
 		else
 			local types = {}
 			local index = 0
