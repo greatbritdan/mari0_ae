@@ -8209,10 +8209,13 @@ function reverseautoscrollingscrollbar(s)
 end
 
 function formatscrollnumber(i)
+	local point = (i%1 == 0) and "." or ""
 	if string.len(i) == 1 then
-		return i .. ".00"
+		return i .. point .. "00"
+	elseif string.len(i) == 2 then
+		return i .. point .. "0"
 	elseif string.len(i) == 3 then
-		if i < 0 then
+		if i == math.floor(tonumber(i)) then
 			return i
 		else
 			return i .. "0"
