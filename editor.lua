@@ -6061,11 +6061,7 @@ function openrightclickmenu(x, y, tileX, tileY)
 							else
 								s = round((v*(max-min))+min, rnd or 2)
 							end
-							if math.floor(s) ~= s or string.len(s) <= math.floor(self.width/8)-2 then
-								return formatscrollnumber(s)
-							else
-								return s
-							end
+							return formatscrollnumber(s)
 						end
 						d:updatefunc(d.value)
 					end
