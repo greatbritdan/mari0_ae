@@ -5718,7 +5718,7 @@ function openrightclickmenu(x, y, tileX, tileY)
 					var = (vt[index] == "true")
 				end
 
-				table.insert(rightclickobjects, guielement:new("checkbox", rx, ry+2, function(v) rightclickobjects[obj].var = v; vt[ni] = v end, var, v.rightclick[i][3] or ""))
+				table.insert(rightclickobjects, guielement:new("checkbox", rx, ry, function(v) rightclickobjects[obj].var = v; vt[ni] = v end, var, v.rightclick[i][3] or ""))
 				width = #v.rightclick[i][3]*8+10
 				addv = 13
 			elseif v.rightclick[i][1] == "buttonset" then
