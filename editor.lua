@@ -897,21 +897,18 @@ function editor_update(dt)
 		end
 		
 		if rightclickmenuopen and customrcopen then
-			local scrollbar, lastval = false
+			local scrollbar = false
 			if rightclickobjects then
 				for i = 1, #rightclickobjects do
 					local obj = rightclickobjects[i]
-					if obj.rightclickscrollbar then
-						scrollbar = obj
-						lastval = scrollbar.value * rightclickobjects.scrolldist
-					end
+					if obj.rightclickscrollbar then scrollbar = obj end
 					obj:update(dt)
 				end
 			end
 			if scrollbar then
 				local val = scrollbar.value * rightclickobjects.scrolldist
-				if lastval ~= val then
-					local diff = (val - lastval)
+				if scrollbar.lastvalue ~= val then
+					local diff = (val - scrollbar.lastvalue)
 					for i = 1, #rightclickobjects do
 						local obj = rightclickobjects[i]
 						if scrollbar ~= obj then
@@ -921,6 +918,8 @@ function editor_update(dt)
 					end
 					rightclickobjects.y = rightclickobjects[1].y-4
 				end
+				-- idk if there is a better way to do this as scrollbars don't call update when scrolled with the mouse
+				scrollbar.lastvalue = val
 			end
 		end
 		
@@ -5817,6 +5816,7 @@ function openrightclickmenu(x, y, tileX, tileY)
 			rightclickobjects.scrolldist = rightclickobjects.height - (height*16)
 			local s = guielement:new("scrollbar", (x/scale)+rightclickobjects.width, y/scale, height*16, 8, height*8)
 			s.rightclickscrollbar = true
+			s.lastvalue = 0
 			rightclickobjects.width = rightclickobjects.width + 8
 			table.insert(rightclickobjects, s)
 			scootscrollbar = true
