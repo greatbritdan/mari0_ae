@@ -897,10 +897,29 @@ function editor_update(dt)
 		end
 		
 		if rightclickmenuopen and customrcopen then
+			local scrollbar, lastval = false
 			if rightclickobjects then
 				for i = 1, #rightclickobjects do
 					local obj = rightclickobjects[i]
+					if obj.rightclickscrollbar then
+						scrollbar = obj
+						lastval = scrollbar.value * rightclickobjects.scrolldist
+					end
 					obj:update(dt)
+				end
+			end
+			if scrollbar then
+				local val = scrollbar.value * rightclickobjects.scrolldist
+				if lastval ~= val then
+					local diff = (val - lastval)
+					for i = 1, #rightclickobjects do
+						local obj = rightclickobjects[i]
+						if scrollbar ~= obj then
+							rightclickobjects[i].y = rightclickobjects[i].y - diff
+							obj:updatePos()
+						end
+					end
+					rightclickobjects.y = rightclickobjects[1].y-4
 				end
 			end
 		end
@@ -5792,6 +5811,16 @@ function openrightclickmenu(x, y, tileX, tileY)
 			ry = ry + addv
 			rightclickobjects.height = rightclickobjects.height + addv
 		end
+		
+		-- scrollbar for too many elements
+		if rightclickobjects.height > height*16 then
+			rightclickobjects.scrolldist = rightclickobjects.height - (height*16)
+			local s = guielement:new("scrollbar", (x/scale)+rightclickobjects.width, y/scale, height*16, 8, height*8)
+			s.rightclickscrollbar = true
+			rightclickobjects.width = rightclickobjects.width + 8
+			table.insert(rightclickobjects, s)
+			scootscrollbar = true
+		end
 
 		scoot = true
 	elseif entitylist[r[2]] and rightclicktype[entitylist[r[2]].t] then --custom rightclick menu
@@ -6051,12 +6080,16 @@ function openrightclickmenu(x, y, tileX, tileY)
 					end
 				end
 				if scooty then
-					if shifty then
-						--neither work, just shift
-						rightclickobjects[i].y = ((height*16)-(y/scale))-rightclickobjects.height+rightclickobjects[i].y
+					if scootscrollbar then
+						rightclickobjects[i].y = ((height*16)-(y/scale))-rightclickobjects.height+rightclickobjects[i].y + rightclickobjects.scrolldist
 					else
-						--just flip
-						rightclickobjects[i].y = rightclickobjects[i].y - rightclickobjects.height
+						if shifty then
+							--neither work, just shift
+							rightclickobjects[i].y = ((height*16)-(y/scale))-rightclickobjects.height+rightclickobjects[i].y
+						else
+							--just flip
+							rightclickobjects[i].y = rightclickobjects[i].y - rightclickobjects.height
+						end
 					end
 				end
 				obj:updatePos()
