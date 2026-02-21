@@ -5478,6 +5478,18 @@ end
 
 -- avoid duplication
 function buttonsetoptions(typ)
+	if type(typ) == "table" then
+		local set = {}
+		for i, v in pairs(typ) do
+			v = tostring(v)
+			if directionsquad[v] then
+				table.insert(set, {{directionsimg, directionsquad[v]},v})
+			else
+				table.insert(set, {v:sub(1,1),v})
+			end
+		end
+		return set
+	end
 	if typ == "dir" then
 		return {{{directionsimg, directionsquad["left"]}, "left"},
 		{{directionsimg, directionsquad["up"]}, "up"},
@@ -5669,7 +5681,7 @@ function openrightclickmenu(x, y, tileX, tileY)
 			if v.rightclick[i][1] == "inlineinput" and v.rightclick[i+1] and (v.rightclick[i+1][1] == "input" or v.rightclick[i+1][1] == "inlineinput") then
 				inline = true
 			end
-			
+
 			if v.rightclick[i][1] == "text" then
 				table.insert(rightclickobjects, guielement:new("text", rx, ry, v.rightclick[i][2], {255, 255, 255}))
 				width = 8*#v.rightclick[i][2]
@@ -5724,7 +5736,8 @@ function openrightclickmenu(x, y, tileX, tileY)
 			elseif v.rightclick[i][1] == "buttonset" then
 				local ni = index
 				local set = buttonsetoptions(v.rightclick[i][3])
-
+				local horidx = 0
+				local height = 0
 				local buttonsstart = #rightclickobjects+1
 				for i = 1, #set do
 					--button press function
@@ -5741,15 +5754,22 @@ function openrightclickmenu(x, y, tileX, tileY)
 							end
 						end
 					end
-					local b = guielement:new("button", rx+width, ry, set[i][1], buttonfunc, 0, {ni, set[i][2], #rightclickobjects+1, buttonsstart, #set}, 1, 8)
+					local b = guielement:new("button", rx+width, ry+height, set[i][1], buttonfunc, 0, {ni, set[i][2], #rightclickobjects+1, buttonsstart, #set}, 1, 8)
 					if vt[ni] == set[i][2] then--is the direction selected
 						b.bordercolorhigh = {255, 127, 127}
 						b.bordercolor = {255, 0, 0}
 					end
 					table.insert(rightclickobjects, b)
-					width = width+8+4
+					horidx = horidx + 1
+					if horidx % 8 == 0 and i ~= #set then
+						width = width + 12
+						height = height + 12
+						width = 0
+					else
+						width = width + 12
+					end
 				end
-				addv = 14
+				addv = 14+height
 			elseif v.rightclick[i][1] == "slider" then
 				local ni = index
 				local d = guielement:new("scrollbar", rx, ry, 100, 33, 9, vt[ni], "hor")
@@ -5790,11 +5810,7 @@ function openrightclickmenu(x, y, tileX, tileY)
 					else
 						s = round((val*(max-min))+min, rnd or 2)
 					end
-					if math.floor(s) ~= s or string.len(s) <= math.floor(self.width/8)-2 then
-						return formatscrollnumber(s)
-					else
-						return s
-					end
+					return formatscrollnumber(s)
 				end
 
 				d:updatefunc(d.value)
@@ -5826,7 +5842,7 @@ function openrightclickmenu(x, y, tileX, tileY)
 				rightclickobjects.height = rightclickobjects.height + addv
 			end
 		end
-		
+
 		-- scrollbar for too many elements
 		if rightclickobjects.height > height*16 then
 			rightclickobjects.scrolldist = rightclickobjects.height - (height*16)
