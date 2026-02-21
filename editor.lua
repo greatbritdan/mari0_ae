@@ -5663,6 +5663,13 @@ function openrightclickmenu(x, y, tileX, tileY)
 			end
 			local obj = i+extraobjects
 			width = 0
+
+			-- inline inputs, make sure only inputs can occupy the same line
+			local inline = false
+			if v.rightclick[i][1] == "inlineinput" and v.rightclick[i+1] and (v.rightclick[i+1][1] == "input" or v.rightclick[i+1][1] == "inlineinput") then
+				inline = true
+			end
+			
 			if v.rightclick[i][1] == "text" then
 				table.insert(rightclickobjects, guielement:new("text", rx, ry, v.rightclick[i][2], {255, 255, 255}))
 				width = 8*#v.rightclick[i][2]
@@ -5695,7 +5702,7 @@ function openrightclickmenu(x, y, tileX, tileY)
 				table.insert(rightclickobjects, obj)
 				width = dropwidth*8+13
 				addv = 15
-			elseif v.rightclick[i][1] == "input" then
+			elseif v.rightclick[i][1] == "input" or v.rightclick[i][1] == "inlineinput" then
 				local ni = index
 				local chars = v.rightclick[i][3]
 				if v.rightclick[i][4] and tonumber(v.rightclick[i][4]) then
@@ -5804,11 +5811,20 @@ function openrightclickmenu(x, y, tileX, tileY)
 				addv = 14
 			end
 
-			if width+8 > rightclickobjects.width then
-				rightclickobjects.width = width+8
+			if inline then
+				rx = rx + width
+				if rx-((x/scale)+4)+8 > rightclickobjects.width then
+					rightclickobjects.width = rx-((x/scale)+4)+8
+				end
+				rx = rx + 2 -- spacing
+			else
+				if width+8 > rightclickobjects.width then
+					rightclickobjects.width = width+8
+				end
+				rx = (x/scale)+4
+				ry = ry + addv
+				rightclickobjects.height = rightclickobjects.height + addv
 			end
-			ry = ry + addv
-			rightclickobjects.height = rightclickobjects.height + addv
 		end
 		
 		-- scrollbar for too many elements
