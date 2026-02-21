@@ -175,7 +175,7 @@ function enemy:init(x, y, t, a, properties)
 			for i = 1, #self.rightclick do
 				if self.rightclick[i][1] ~= "text" then
 					index = index + 1
-					if self.rightclick[i][1] == "dropdown" or self.rightclick[i][1] == "input" then
+					if self.rightclick[i][1] == "dropdown" or self.rightclick[i][1] == "input" or self.rightclick[i][1] == "inlineinput" then
 						local var = self.a[3]:split("|")
 						if tonumber(var[index]) then
 							types[index] = "num"
@@ -221,7 +221,7 @@ function enemy:init(x, y, t, a, properties)
 						end
 					elseif self.rightclick[i][1] == "checkbox" then -- first list is for if true, second for if it is false
 						if val[index] == true then var = 1 else var = 2 end
-					elseif self.rightclick[i][1] == "input" then
+					else
 						notice.new("you can't use a list\nfor an input, slider or range!", notice.red, 3)
 					end
 
