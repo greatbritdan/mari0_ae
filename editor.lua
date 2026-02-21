@@ -5512,18 +5512,18 @@ function buttonsetoptions(typ)
 		{{directionsimg, directionsquad["ver"]}, "ver"}}
 	elseif typ == "angle" then
 		return {{{directionsimg, directionsquad["left"]}, "left"},
-		{{directionsimg, directionsquad["left up"]}, "left up"},
+		{{directionsimg, directionsquad["up left"]}, "up left"},
 		{{directionsimg, directionsquad["up"]}, "up"},
-		{{directionsimg, directionsquad["right up"]}, "right up"},
+		{{directionsimg, directionsquad["up right"]}, "up right"},
 		{{directionsimg, directionsquad["right"]}, "right"},
-		{{directionsimg, directionsquad["right down"]}, "right down"},
+		{{directionsimg, directionsquad["down right"]}, "down right"},
 		{{directionsimg, directionsquad["down"]}, "down"},
-		{{directionsimg, directionsquad["left down"]}, "left down"}}
+		{{directionsimg, directionsquad["down left"]}, "down left"}}
 	elseif typ == "diagonaldir" then
-		return {{{directionsimg, directionsquad["left up"]}, "left up"},
-		{{directionsimg, directionsquad["right up"]}, "right up"},
-		{{directionsimg, directionsquad["right down"]}, "right down"},
-		{{directionsimg, directionsquad["left down"]}, "left down"}}
+		return {{{directionsimg, directionsquad["up left"]}, "up left"},
+		{{directionsimg, directionsquad["up right"]}, "up right"},
+		{{directionsimg, directionsquad["down right"]}, "down right"},
+		{{directionsimg, directionsquad["down left"]}, "down left"}}
 	end
 end
 
@@ -5844,6 +5844,7 @@ function openrightclickmenu(x, y, tileX, tileY)
 		end
 
 		-- scrollbar for too many elements
+		rightclickobjects.scrolldist = 0
 		if rightclickobjects.height > height*16 then
 			rightclickobjects.scrolldist = rightclickobjects.height - (height*16)
 			local s = guielement:new("scrollbar", (x/scale)+rightclickobjects.width, y/scale, height*16, 8, height*8)
