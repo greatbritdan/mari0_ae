@@ -158,7 +158,7 @@ function enemy:init(x, y, t, a, properties)
 		local val
 		-- types
 		if self.rightclicktypes then
-			local types = self.rightclicktypes
+			local types = {}
 			for i = 1, #self.rightclicktypes do
 				if type(self.rightclicktypes[i]) == "table" then
 					for j = 1, #self.rightclicktypes[i] do
@@ -175,13 +175,15 @@ function enemy:init(x, y, t, a, properties)
 			for i = 1, #self.rightclick do
 				if self.rightclick[i][1] ~= "text" then
 					index = index + 1
-					if self.rightclick[i][1] == "dropdown" or self.rightclick[i][1] == "input" or self.rightclick[i][1] == "buttonset" then
+					if self.rightclick[i][1] == "dropdown" or self.rightclick[i][1] == "input" then
 						local var = self.a[3]:split("|")
 						if tonumber(var[index]) then
 							types[index] = "num"
 						else
 							types[index] = "string"
 						end
+					elseif self.rightclick[i][1] == "buttonset" then
+						types[index] = "string"
 					elseif self.rightclick[i][1] == "slider" then
 						types[index] = "num"
 					elseif self.rightclick[i][1] == "range" then
