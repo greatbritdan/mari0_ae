@@ -4716,20 +4716,20 @@ function mario:floorcollide(a, b)
 			end
 		end
 	end--]]
-	
+
+	if a == "icicle" or (a == "tilemoving" and b.ice) or a == "ice" or (a == "muncher" and b.frozen) or (a == "enemy" and b.slippery) then
+		self.friction = self.characterdata.icefriction
+		if self.animationstate == "sliding" then
+			if not skidsound:isPlaying() then
+				playsound(skidsound)
+			end
+		end
+		self.tileice = true
+	end
 	if a == "mushroom" or a == "oneup" or a == "star" or a == "flower" or a == "poisonmush" or a == "threeup" or a == "smbsitem" or a == "hammersuit" or a == "frogsuit" or a == "leaf" or (a == "boomerang" and b.fireballthrower) then
 		self.falling = true
 		return false
 	elseif a == "enemy" then
-		if b.slippery then
-			self.friction = self.characterdata.icefriction
-			if self.animationstate == "sliding" then
-				if not skidsound:isPlaying() then
-					playsound(skidsound)
-				end
-			end
-			self.tileice = true
-		end
 		if b.ignoreceilcollide or b.dontstopmario then
 			self.jumping = jump
 			self.falling = fall
@@ -4895,14 +4895,6 @@ function mario:floorcollide(a, b)
 				return false
 			end
 		end
-	elseif a == "icicle" or (a == "tilemoving" and b.ice) or a == "ice" or (a == "muncher" and b.frozen) then
-		self.friction = self.characterdata.icefriction
-		if self.animationstate == "sliding" then
-			if not skidsound:isPlaying() then
-				playsound(skidsound)
-			end
-		end
-		self.tileice = true
 	elseif a == "box" or a == "core" then
 		--check if box can even move
 		if (b.gravitydir and (b.gravitydir == "left" or b.gravitydir == "right") and self.gravitydir == b.gravitydir) then
