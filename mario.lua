@@ -4721,6 +4721,15 @@ function mario:floorcollide(a, b)
 		self.falling = true
 		return false
 	elseif a == "enemy" then
+		if b.slippy then
+			self.friction = self.characterdata.icefriction
+			if self.animationstate == "sliding" then
+				if not skidsound:isPlaying() then
+					playsound(skidsound)
+				end
+			end
+			self.tileice = true
+		end
 		if b.ignoreceilcollide or b.dontstopmario then
 			self.jumping = jump
 			self.falling = fall
