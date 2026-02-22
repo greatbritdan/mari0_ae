@@ -6812,7 +6812,7 @@ end
 function hitblockconvert(x, y)
 	local invisblocks = {113,118,112,113}
 	local blocks = {113,114,117,113}
-	if x.t then -- moving tile
+	if type(x) == "table" then -- moving tile
 		if not x.noteblock then
 			if x.usedblockidx then
 				x.t = x.usedblockidx
@@ -6824,8 +6824,9 @@ function hitblockconvert(x, y)
 			x.coinblock = false
 			x.breakable = false
 			x.invisible = false
+			return true
 		end
-		return true
+		return false
 	end
 	local r = map[x][y]
 	if not tilequads[r[1]].noteblock then
