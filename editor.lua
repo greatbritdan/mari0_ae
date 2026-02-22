@@ -5631,7 +5631,7 @@ function openrightclickmenu(x, y, tileX, tileY)
 		rightclickmenucox = tileX
 		rightclickmenucoy = tileY
 		rightclickmenuopen = true
-		rightclickobjects = {width = 8, height = 6}
+		rightclickobjects = {width = 8, height = 6, scrolldist = 0}
 		customrcopen = "custom_enemy"
 
 		local rx, ry = (x/scale)+4, (y/scale)+4
@@ -5666,6 +5666,7 @@ function openrightclickmenu(x, y, tileX, tileY)
 
 		local vt = rightclickvalues2
 		local addv = 0
+		local addh = 0
 		local width = 0
 		local extraobjects = 0
 		local index = 0
@@ -5674,7 +5675,6 @@ function openrightclickmenu(x, y, tileX, tileY)
 				index = index + 1
 			end
 			local obj = i+extraobjects
-			width = 0
 
 			-- inline inputs, make sure only inputs can occupy the same line
 			local inline = false
@@ -5684,7 +5684,7 @@ function openrightclickmenu(x, y, tileX, tileY)
 
 			if v.rightclick[i][1] == "text" then
 				table.insert(rightclickobjects, guielement:new("text", rx, ry, v.rightclick[i][2], {255, 255, 255}))
-				width = 8*#v.rightclick[i][2]
+				addh = 8*#v.rightclick[i][2]
 				addv = 10
 			elseif v.rightclick[i][1] == "dropdown" then
 				local ni = index
@@ -5712,7 +5712,7 @@ function openrightclickmenu(x, y, tileX, tileY)
 					obj.displayentries = deepcopy(displayents)
 				end
 				table.insert(rightclickobjects, obj)
-				width = dropwidth*8+13
+				addh = dropwidth*8+13
 				addv = 15
 			elseif v.rightclick[i][1] == "input" or v.rightclick[i][1] == "inlineinput" then
 				local ni = index
@@ -5721,7 +5721,7 @@ function openrightclickmenu(x, y, tileX, tileY)
 					chars = v.rightclick[i][4]
 				end
 				table.insert(rightclickobjects, guielement:new("input", rx, ry, v.rightclick[i][3], function(v) vt[ni] = v end, vt[index], chars, 1, "rightclick"))
-				width = v.rightclick[i][3]*8+5
+				addh = v.rightclick[i][3]*8+5
 				addv = 16
 			elseif v.rightclick[i][1] == "checkbox" then
 				local ni = index
@@ -5731,13 +5731,14 @@ function openrightclickmenu(x, y, tileX, tileY)
 				end
 
 				table.insert(rightclickobjects, guielement:new("checkbox", rx, ry, function(v) rightclickobjects[obj].var = v; vt[ni] = v end, var, v.rightclick[i][3] or ""))
-				width = #v.rightclick[i][3]*8+10
+				addh = #v.rightclick[i][3]*8+10
 				addv = 13
 			elseif v.rightclick[i][1] == "buttonset" then
 				local ni = index
 				local set = buttonsetoptions(v.rightclick[i][3])
 				local horidx = 0
-				local height = 0
+				local w = 0
+				local h = 0
 				local buttonsstart = #rightclickobjects+1
 				for i = 1, #set do
 					--button press function
@@ -5754,7 +5755,7 @@ function openrightclickmenu(x, y, tileX, tileY)
 							end
 						end
 					end
-					local b = guielement:new("button", rx+width, ry+height, set[i][1], buttonfunc, 0, {ni, set[i][2], #rightclickobjects+1, buttonsstart, #set}, 1, 8)
+					local b = guielement:new("button", rx+w, ry+h, set[i][1], buttonfunc, 0, {ni, set[i][2], #rightclickobjects+1, buttonsstart, #set}, 1, 8)
 					if vt[ni] == set[i][2] then--is the direction selected
 						b.bordercolorhigh = {255, 127, 127}
 						b.bordercolor = {255, 0, 0}
@@ -5762,14 +5763,14 @@ function openrightclickmenu(x, y, tileX, tileY)
 					table.insert(rightclickobjects, b)
 					horidx = horidx + 1
 					if horidx % 8 == 0 and i ~= #set then
-						width = width + 12
-						height = height + 12
-						width = 0
+						h = h + 12
+						w = 0
 					else
-						width = width + 12
+						w = w + 12
 					end
 				end
-				addv = 14+height
+				addh = w-1
+				addv = 14+h
 			elseif v.rightclick[i][1] == "slider" then
 				local ni = index
 				local d = guielement:new("scrollbar", rx, ry, 100, 33, 9, vt[ni], "hor")
@@ -5815,7 +5816,7 @@ function openrightclickmenu(x, y, tileX, tileY)
 
 				d:updatefunc(d.value)
 				table.insert(rightclickobjects, d)
-				width = 100
+				addh = 100
 				addv = 12
 			elseif v.rightclick[i][1] == "range" then
 				local ni = index
@@ -5823,20 +5824,19 @@ function openrightclickmenu(x, y, tileX, tileY)
 				local b = guielement:new("button", rx, ry, " set range ", function(var, step) startrcregion(var, step, true) end, 1, {ni, _step})
 				index = index + 3 -- as the range needs to store 4 vaues, skip 3 ahead so no overlapping happens.
 				table.insert(rightclickobjects, b)
-				width = (11*8)+6
+				addh = (11*8)+6
 				addv = 14
 			end
 
+			width = width + addh
+			if width+8 > rightclickobjects.width then
+				rightclickobjects.width = width+8
+			end
 			if inline then
-				rx = rx + width
-				if rx-((x/scale)+4)+8 > rightclickobjects.width then
-					rightclickobjects.width = rx-((x/scale)+4)+8
-				end
-				rx = rx + 2 -- spacing
+				width = width + 2 -- spacing
+				rx = rx + addh + 2
 			else
-				if width+8 > rightclickobjects.width then
-					rightclickobjects.width = width+8
-				end
+				width = 0
 				rx = (x/scale)+4
 				ry = ry + addv
 				rightclickobjects.height = rightclickobjects.height + addv
@@ -5844,7 +5844,6 @@ function openrightclickmenu(x, y, tileX, tileY)
 		end
 
 		-- scrollbar for too many elements
-		rightclickobjects.scrolldist = 0
 		if rightclickobjects.height > height*16 then
 			rightclickobjects.scrolldist = rightclickobjects.height - (height*16)
 			local s = guielement:new("scrollbar", (x/scale)+rightclickobjects.width, y/scale, height*16, 8, height*8)
@@ -5862,7 +5861,7 @@ function openrightclickmenu(x, y, tileX, tileY)
 		rightclickmenucox = tileX
 		rightclickmenucoy = tileY
 		rightclickmenuopen = true
-		rightclickobjects = {width = 8, height = 6} --width 4px border | height 4px border, 2px obj separation
+		rightclickobjects = {width = 8, height = 6, scrolldist = 0} --width 4px border | height 4px border, 2px obj separation
 		
 		local rx, ry = (x/scale)+4, (y/scale)+4
 		local rct = rightclicktype[entitylist[r[2]].t] --custom right-click table
