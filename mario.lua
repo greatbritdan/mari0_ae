@@ -5007,7 +5007,9 @@ function mario:stompenemy(a, b)
 						self.combo = 1
 					end
 				else
-					if not b.nostompsound then
+					if b.stompsound then
+						b:playsound(b.stompsound)
+					elseif not b.nostompsound then
 						playsound(stompsound)
 					end
 				end
