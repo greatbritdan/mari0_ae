@@ -5075,7 +5075,9 @@ function mario:stompenemy(a, b)
 					table.insert(scrollingscores, scrollingscore:new("1up", self.x, self.y))
 					playsound("oneup")
 				end
-				if not b.nostompsound then
+				if b.stompsound then
+					b:playsound(b.stompsound)
+				elseif not b.nostompsound then
 					playsound(stompsound)
 				end
 				bounce = true
