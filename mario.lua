@@ -1781,8 +1781,11 @@ function mario:update(dt)
 		
 		if self.animationtimer - dt < shrinktime and self.animationtimer > shrinktime then
 			self.animationstate = self.animationmisc
-			self.animation = "invincible"
-			self.invincible = true
+			self.animation = false
+			if not self.customgrow then
+				self.animation = "invincible"
+				self.invincible = true
+			end
 			noupdate = false
 			self.animationtimer = 0
 			self.drawable = true
@@ -1793,6 +1796,8 @@ function mario:update(dt)
 			else
 				self:setsize(1)
 			end
+			self.customgrow = false
+			self.colorgrow = false
 		end
 		return
 	elseif self.animation == "invincible" then
@@ -1847,6 +1852,8 @@ function mario:update(dt)
 			self.animation = false
 			noupdate = false
 			self:setsize(self.size)
+			self.customgrow = false
+			self.colorgrow = false
 		end
 		return
 		
@@ -1863,6 +1870,8 @@ function mario:update(dt)
 			noupdate = false
 			self.animationtimer = 0
 			self:setsize(self.size)
+			self.customgrow = false
+			self.colorgrow = false
 		end
 		return
 	elseif self.animation == "door" then
@@ -4178,10 +4187,10 @@ function mario:setsize(size, oldsize)
 	self.portalsourcey = 6/16
 
 	self.weight = 1
-
+	local colortable
 	if size == 1 then --small mario
 		width, height = 12/16, 12/16
-		self.basecolors = mariocolors[self.playernumber]
+		colortable = mariocolors[self.playernumber]
 		self.graphic = self.smallgraphic
 		self.quadcenterX = self.characterdata.smallquadcenterX
 		self.quadcenterY = self.characterdata.smallquadcenterY
@@ -4190,7 +4199,7 @@ function mario:setsize(size, oldsize)
 		self.weight = .5
 	elseif size == 2 then --big mario
 		width, height = 12/16, 24/16
-		self.basecolors = mariocolors[self.playernumber]
+		colortable = mariocolors[self.playernumber]
 		self.graphic = self.biggraphic
 		self.quadcenterX = self.characterdata.bigquadcenterX
 		self.quadcenterY = self.characterdata.bigquadcenterY
@@ -4198,7 +4207,7 @@ function mario:setsize(size, oldsize)
 		self.offsetY = self.characterdata.bigoffsetY
 	elseif size == 3 then --fire mario
 		width, height = 12/16, 24/16
-		self:setbasecolors("flowercolor")
+		colortable = "flowercolor"
 		if self.firegraphic then
 			self.graphic = self.firegraphic
 		else
@@ -4210,7 +4219,7 @@ function mario:setsize(size, oldsize)
 		self.offsetY = self.characterdata.bigoffsetY
 	elseif size == 4 then --hammer mario
 		width, height = 12/16, 24/16
-		self:setbasecolors("hammersuitcolor")
+		colortable = "hammersuitcolor"
 		self.graphic = self.hammergraphic
 		self.quadcenterX = self.characterdata.hammerquadcenterX
 		self.quadcenterY = self.characterdata.hammerquadcenterY
@@ -4218,7 +4227,7 @@ function mario:setsize(size, oldsize)
 		self.offsetY = self.characterdata.hammeroffsetY
 	elseif size == 5 then --frog mario
 		width, height = 12/16, 18/16
-		self:setbasecolors("frogsuitcolor")
+		colortable = "frogsuitcolor"
 		self.graphic = self.froggraphic
 		self.quadcenterX = self.characterdata.frogquadcenterX
 		self.quadcenterY = self.characterdata.frogquadcenterY
@@ -4234,7 +4243,7 @@ function mario:setsize(size, oldsize)
 		self.offsetY = self.characterdata.raccoonoffsetY
 	elseif size == 7 then --ice mario
 		width, height = 12/16, 24/16
-		self:setbasecolors("iceflowercolor")
+		colortable = "iceflowercolor"
 		if self.icegraphic then
 			self.graphic = self.icegraphic
 		else
@@ -4246,7 +4255,7 @@ function mario:setsize(size, oldsize)
 		self.offsetY = self.characterdata.bigoffsetY
 	elseif size == 8 then --huge mario
 		width, height = 36/16, 90/16
-		self.basecolors = mariocolors[self.playernumber]
+		colortable = mariocolors[self.playernumber]
 		self.graphic = self.biggraphic
 		self.quadcenterX = self.characterdata.hugequadcenterX
 		self.quadcenterY = self.characterdata.hugequadcenterY
@@ -4278,7 +4287,7 @@ function mario:setsize(size, oldsize)
 		end
 	elseif size == 9 then --tanooki mario
 		width, height = 12/16, 24/16
-		self:setbasecolors("tanookisuitcolor")
+		colortable = "tanookisuitcolor"
 		self.graphic = self.tanookigraphic
 		self.quadcenterX = self.characterdata.raccoonquadcenterX
 		self.quadcenterY = self.characterdata.raccoonquadcenterY
@@ -4299,7 +4308,7 @@ function mario:setsize(size, oldsize)
 		self.capeflyanim = 0
 	elseif size == 11 then --bunny mario
 		width, height = 12/16, 24/16
-		self.basecolors = mariocolors[self.playernumber]
+		colortable = mariocolors[self.playernumber]
 		self.graphic = self.biggraphic
 		self.quadcenterX = self.characterdata.bigquadcenterX
 		self.quadcenterY = self.characterdata.bigquadcenterY
@@ -4307,7 +4316,7 @@ function mario:setsize(size, oldsize)
 		self.offsetY = self.characterdata.bigoffsetY
 	elseif size == 12 then --skinny mario
 		width, height = 12/16, 24/16
-		self.basecolors = mariocolors[self.playernumber]
+		colortable = mariocolors[self.playernumber]
 		self.graphic = self.skinnygraphic
 		self.quadcenterX = self.characterdata.bigquadcenterX
 		self.quadcenterY = self.characterdata.bigquadcenterY
@@ -4315,7 +4324,7 @@ function mario:setsize(size, oldsize)
 		self.offsetY = self.characterdata.bigoffsetY
 	elseif size == 13 then --superball mario
 		width, height = 12/16, 24/16
-		self:setbasecolors("superballcolor")
+		colortable = "superballcolor"
 		if self.superballgraphic then
 			self.graphic = self.superballgraphic
 		else
@@ -4327,7 +4336,7 @@ function mario:setsize(size, oldsize)
 		self.offsetY = self.characterdata.bigoffsetY
 	elseif size == 14 then --blue shell mario
 		width, height = 12/16, 24/16
-		self:setbasecolors("blueshellcolor")
+		colortable = "blueshellcolor"
 		self.graphic = self.shellgraphic
 		self.quadcenterX = self.characterdata.shellquadcenterX
 		self.quadcenterY = self.characterdata.shellquadcenterY
@@ -4335,7 +4344,7 @@ function mario:setsize(size, oldsize)
 		self.offsetY = self.characterdata.shelloffsetY
 	elseif size == 15 then --boomerang mario
 		width, height = 12/16, 24/16
-		self:setbasecolors("boomerangcolor")
+		colortable = "boomerangcolor"
 		self.graphic = self.boomeranggraphic
 		self.quadcenterX = self.characterdata.boomerangquadcenterX
 		self.quadcenterY = self.characterdata.boomerangquadcenterY
@@ -4343,7 +4352,7 @@ function mario:setsize(size, oldsize)
 		self.offsetY = self.characterdata.boomerangoffsetY
 	elseif size == 16 then --classic huge mario
 		width, height = 24/16, 24/16
-		self.basecolors = mariocolors[self.playernumber]
+		colortable = mariocolors[self.playernumber]
 		self.graphic = self.smallgraphic
 		self.quadcenterX = self.characterdata.hugeclassicquadcenterX
 		self.quadcenterY = self.characterdata.hugeclassicquadcenterY
@@ -4370,7 +4379,7 @@ function mario:setsize(size, oldsize)
 		end
 	elseif size == -1 then --tiny mario
 		width, height = 6/16, 6/16
-		self.basecolors = mariocolors[self.playernumber]
+		colortable = mariocolors[self.playernumber]
 		self.graphic = self.tinygraphic
 		self.quadcenterX = self.characterdata.tinyquadcenterX
 		self.quadcenterY = self.characterdata.tinyquadcenterY
@@ -4385,18 +4394,17 @@ function mario:setsize(size, oldsize)
 		end
 	end
 
+	if colortable and not self.colorgrow then
+		if type(colortable) == "table" then
+			self.basecolors = colortable
+		else
+			self:setbasecolors(colortable)
+		end
+	end
+
 	--custom powerups
-	if self.fireenemy then
-		self.fireenemy = false
-		--self.fireballcount = 0 --breaks some stuff
-	end
-	if self.dofireenemy then
-		self.fireenemy = self.dofireenemy
-		self.dofireenemy = false
-	end
-	if self.customcolors then
-		self.basecolors = self.customcolors
-		self.customcolors = false
+	if not self.customgrow then
+		self.fireenemy = nil
 	end
 
 	self.colors = self.basecolors
@@ -4721,6 +4729,15 @@ function mario:floorcollide(a, b)
 		self.falling = true
 		return false
 	elseif a == "enemy" then
+		if b.slippy then
+			self.friction = self.characterdata.icefriction
+			if self.animationstate == "sliding" then
+				if not skidsound:isPlaying() then
+					playsound(skidsound)
+				end
+			end
+			self.tileice = true
+		end
 		if b.ignoreceilcollide or b.dontstopmario then
 			self.jumping = jump
 			self.falling = fall
@@ -6368,27 +6385,31 @@ function mario:globalcollide(a, b)
 	elseif a == "enemy" then
 		if b.marioused then
 			return true
-		elseif b.makesmariogrow then
-			local oldfireenemy = self.fireenemy
-			if tonumber(b.makesmariogrow) then
-				self:grow(b.makesmariogrow)
+		end
+		if b.makesmariogrow then
+			b.marioused = true
+			if tonumber(b.makesmariogrow) then -- Apply new powerup
+				self:grow(b.makesmariogrow) 
 			else
 				self:grow()
 			end
-			if b.makesmarioshoot and self.size == 3 then
-				--if not (oldfireenemy == b.makesmarioshoot) then
-					self.fireenemy = b.makesmarioshoot
-					self.dofireenemy = self.fireenemy
+			if b.makesmarioshoot then
+				if not (self.fireenemy == b.makesmarioshoot) then
+					self.fireenemy = b.makesmarioshoot  -- Change custom power
+					self.customgrow = true
 					if b.makesmariocolor then
-						self.customcolors = b.makesmariocolor
-						self.basecolors = self.customcolors
-						self.colors = self.basecolors
-					else
-						self.customcolors = false
+						self.basecolors = b.makesmariocolor -- Change custom powerup color
+						self.colorgrow = true
 					end
-				--end
+				end
 			end
-			b.marioused = true
+			if (not self.animation) then -- Apply immediately if not playing cutscene
+				self.customgrow = true
+				self.colorgrow = true
+				self:setsize(self.size)
+				self.customgrow = false
+				self.colorgrow = false
+			end
 			return true
 		elseif b.givesalife then
 			givelive(self.playernumber, b)
@@ -7255,11 +7276,6 @@ function mario:die(how)
 			self.animationtimer = 0
 			self.animation = "invincible"
 			self:shoed(false)
-			if self.fireenemy then
-				self.customcolors = self.colors
-				self.dofireenemy = self.fireenemy
-			end
-			self:setsize(self.size)
 			return
 		end
 
@@ -9041,10 +9057,6 @@ function mario:shoed(shoe, initial, drop) --get in shoe (type, make sound?, drop
 			table.insert(objects["mushroom"], obj)
 		end
 		self.shoe = false
-		if self.fireenemy then
-			self.customcolors = self.colors
-			self.dofireenemy = self.fireenemy
-		end
 		--self:setsize(self.size)
 		playsound(shotsound)
 		net_action(self.playernumber, "shoed|" .. tostring(shoe) .. "|" .. tostring(initial) .. "|" .. tostring(drop))
@@ -9143,10 +9155,18 @@ function mario:setbasecolors(color)
 	if self.character and self.characterdata then
 		if self.characterdata[color] then
 			self.basecolors = self.characterdata[color]
-		else
-			self.basecolors = _G[color]
+			return
 		end
-	else
-		self.basecolors = _G[color]
 	end
+	local reftable = {
+		flowercolor = flowercolor,
+		hammersuitcolor = hammersuitcolor,
+		frogsuitcolor = frogsuitcolor,
+		iceflowercolor = iceflowercolor,
+		tanookisuitcolor = tanookisuitcolor,
+		superballcolor = superballcolor,
+		blueshellcolor = blueshellcolor,
+		boomerangcolor = boomerangcolor,
+	}
+	self.basecolors = reftable[color]
 end
