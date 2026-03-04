@@ -1854,6 +1854,13 @@ function mario:update(dt)
 			self:setsize(self.size)
 			self.customgrow = false
 			self.colorgrow = false
+
+			if self.size == 8 then
+				self:star()
+			elseif self.invincible then --keep invincibility after growing
+				self.animationtimer = 0
+				self.animation = "invincible"
+			end
 		end
 		return
 		
@@ -1872,6 +1879,11 @@ function mario:update(dt)
 			self:setsize(self.size)
 			self.customgrow = false
 			self.colorgrow = false
+
+			if self.invincible then --keep invincibility after growing
+				self.animationtimer = 0
+				self.animation = "invincible"
+			end
 		end
 		return
 	elseif self.animation == "door" then
@@ -4033,7 +4045,7 @@ function mario:groundpound(pound)
 	end
 end
 
-function mario:grow(update)
+function mario:grow(update, fireenemy, customcolor)
 	net_action(self.playernumber, "grow|" .. (update or "")) --netplay die
 	if (CLIENT or SERVER) and self.playernumber > 1 and not self.netaction then --netplay grow
 		return
@@ -4041,12 +4053,20 @@ function mario:grow(update)
 	
 	if self.characterdata.health then
 		playsound(mushroomeatsound)
-		self.health = math.min(self.characterdata.health, self.health + 1)
+		if fireenemy and self.characterdata.healthcustompowerup and update == self.size then
+			self.fireenemy = fireenemy
+			if customcolor then
+				self.basecolors = customcolor
+			end
+		else
+			self.health = math.min(self.characterdata.health, self.health + 1)
+		end
 		return false
 	end
 	if self.animation and self.animation ~= "invincible" and self.animation ~= "intermission" then
 		return
 	end
+
 	self.animationmisc = self.animationstate
 	addpoints(1000, self.x+self.width/2, self.y)
 	if update and update == 12 then
@@ -4060,59 +4080,69 @@ function mario:grow(update)
 	else
 		playsound(mushroomeatsound)
 	end
-	
-	if mariomakerphysics and (not update) and self.size >= 2 then
-		--mushroom doesn't make big mario grow
-		return
-	end
 
-	if bigmario or ((self.size == 8 or self.size == 16) and ((not update) or (update ~= self.size))) then
-		return
-	end
-
-	if self.animation == "intermission" then
-		if update and (update > self.size or update == -1) then
-			self:setsize(update)
-			self:setquad()
-			self.size = update
+	if (mariomakerphysics and self.size >= 2 and not update) or (self.size == update and fireenemy == self.fireenemy) then
+		--Same item again
+		if self.size == 8 and update == 8 then
+			self:star() --refresh mega
 		end
 		return
 	end
-	
-	if self.size > 2 then
-		if update then
-			self.size = update
-			self:setsize(update)
+
+	if bigmario or ((self.size == 8 or self.size == 16) and (update ~= self.size)) then
+		--Big forms overwriting other items
+		return
+	end
+
+	if self.animation == "intermission" then -- Avoid cutscenes breaking the intermission state
+		self.size = update
+		self:setsize(update)	-- This will remove existing custom powers
+		if fireenemy then
+			self.fireenemy = fireenemy
+			if customcolor then
+				self.basecolors = customcolor
+			end
 		end
+		self:setquad()
+	end
+
+	noupdate = true		--play the cutscene
+	self.animation = "grow2"
+
+	if self.fireenemy ~= fireenemy then  -- Change custom power
+		self:setsize(self.size) -- remove old one
+
+		self.fireenemy = fireenemy
+		self.customgrow = true -- Setsizes won't remove custom power now
+		if customcolor then -- Change custom powerup color
+			self.basecolors = customcolor
+			self.colorgrow = true
+		end
+	end
+
+	if self.ducking and self.size < 2 then -- Prevent ducking if small
+		self:duck(false)
+	end
+	local oldsize = self.size
+	if ((self.size == 1 and (not update or (update == 3 and (not mariomakerphysics)))) or (self.size == 2 and not update)) and update ~= -1 and update ~= 8 and update ~= 12 and update ~= 16 then
+		self.size = self.size + 1
 	else
-		if self.ducking then --stop small mario ducking
-			self:duck(false)
-		end
-		local oldsize = self.size
-		if ((self.size == 1 and (not update or (update == 3 and (not mariomakerphysics)))) or (self.size == 2 and not update)) and update ~= -1 and update ~= 8 and update ~= 12 and update ~= 16 then
-			self.size = self.size + 1
-		else
-			self.size = update or 2
-		end
-		self:setsize(self.size)
+		self.size = update or 2
+	end
+	self:setsize(self.size)
 		
-		self.drawable = true
-		self.invincible = false
-		self.animationtimer = 0
-		noupdate = true
+	self.drawable = true
+	self.animationtimer = 0
+	noupdate = true
 		
-		if self.size == 2 or self.size == -1 or (oldsize <= 1 and self.size == 12) then
-			self.animation = "grow1"
-		elseif (self.size == 8 or self.size == 16) then
-			self.animation = false
-			noupdate = false
-		else
-			self:setsize(2)
-			self.animation = "grow2"
-		end
-		if self.size ~= 6 then
-			raccoonplanesound:stop() --stops raccoon flying sound
-		end
+	if (self.size == -1 or self.size == 8 or self.size == 16) or oldsize < 2 and (self.size == 2 or self.size == 12) then
+		self.animation = "grow1"
+	else
+		--self:setsize(2)   dont do this, to be able to animate as other forms
+		self.animation = "grow2"
+	end
+	if not self.planemode then
+		raccoonplanesound:stop() --stops raccoon flying sound
 	end
 end
 
@@ -4149,7 +4179,8 @@ function mario:shrink()
 		self.color = self.basecolors
 		self.invincible = true
 		self.animationtimer = 0
-		self.animation = "invincible"
+		noupdate = true
+		self.animation = "grow2"
 		return
 	end
 	
@@ -4264,8 +4295,8 @@ function mario:setsize(size, oldsize)
 		
 		self.animationscalex = 3
 		self.animationscaley = 3
-		
-		if not oldsize or oldsize ~= self.size then
+
+		if not self.animation or self.animation == "invincible" or self.animation == "intermission" then
 			self.drawable = true
 			self.invincible = false
 			self.animationtimer = 0
@@ -4729,6 +4760,15 @@ function mario:floorcollide(a, b)
 		self.falling = true
 		return false
 	elseif a == "enemy" then
+		if b.slippy then
+			self.friction = self.characterdata.icefriction
+			if self.animationstate == "sliding" then
+				if not skidsound:isPlaying() then
+					playsound(skidsound)
+				end
+			end
+			self.tileice = true
+		end
 		if b.ignoreceilcollide or b.dontstopmario then
 			self.jumping = jump
 			self.falling = fall
@@ -6380,26 +6420,9 @@ function mario:globalcollide(a, b)
 		if b.makesmariogrow then
 			b.marioused = true
 			if tonumber(b.makesmariogrow) then -- Apply new powerup
-				self:grow(b.makesmariogrow) 
+				self:grow(b.makesmariogrow, b.makesmarioshoot, b.makesmariocolor) 
 			else
-				self:grow()
-			end
-			if b.makesmarioshoot then
-				if not (self.fireenemy == b.makesmarioshoot) then
-					self.fireenemy = b.makesmarioshoot  -- Change custom power
-					self.customgrow = true
-					if b.makesmariocolor then
-						self.basecolors = b.makesmariocolor -- Change custom powerup color
-						self.colorgrow = true
-					end
-				end
-			end
-			if (not self.animation) then -- Apply immediately if not playing cutscene
-				self.customgrow = true
-				self.colorgrow = true
-				self:setsize(self.size)
-				self.customgrow = false
-				self.colorgrow = false
+				self:grow(false, b.makesmarioshoot, b.makesmariocolor)
 			end
 			return true
 		elseif b.givesalife then
