@@ -81,7 +81,7 @@ local function ct_mul(self, ln) self[ln.p] = self[ln.p] * ln.a end
  local function ct_mul_p(self, ln) self[ln.p] = self[ln.p] * self[ln.a] end
 local function ct_div(self, ln) self[ln.p] = self[ln.p] / ln.a end
  local function ct_div_p(self, ln) self[ln.p] = self[ln.p] / self[ln.a] end
-local function ct_rev(self, ln) if type(self[ln.p]) == "boolean" then self[ln.p] = not self[ln.p] else self[ln.p] = -self[ln.p] end end
+local function ct_rev(self, ln) if type(self[ln.p]) == "boolean" then self[ln.p] = not self[ln.p] elseif self[ln.p] == "left" or self[ln.p] == "right" then self[ln.p] = (self[ln.p] == "left") and "right" or "left" else self[ln.p] = -self[ln.p] end end
 local function ct_rng(self, ln) if type(ln.a) == "number" then self[ln.p] = math.random()*ln.a else self[ln.p] = ln.a[math.random(#ln.a)] end end
  local function ct_rng_p(self, ln) if type(self[ln.a]) == "number" then self[ln.p] = math.random()*self[ln.a] else self[ln.p] = self[ln.a][math.random(#ln.a)] end end
 local function ct_abs(self, ln) self[ln.p] = math.abs(self[ln.p]) end
@@ -2692,6 +2692,8 @@ function enemy:customtimeraction(action, arg, arg2)
 		elseif a == "reverse" then
 			if type(self[p]) == "boolean" then
 				self[p] = not self[p]
+			elseif self[p] == "left" or self[p] == "right" then
+				self[p] = (self[p] == "left") and "right" or "left"
 			else
 				self[p] = -self[p]
 			end
