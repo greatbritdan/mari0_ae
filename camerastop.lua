@@ -40,8 +40,8 @@ function camerastop:collide(oldx, oldy)
 	end
 	if self.power and ((not self.ignoreifoffscreen) or playersonscreen) then
 		local x1, y1, w1, h1 = self.rx, self.ry-.5, self.rw, self.rh
-		local xscroll, yscroll = xscroll, yscroll
 		local x2, y2, w2, h2 = xscroll, yscroll, width, height
+		local oldscrollx, oldscrolly = xscroll, yscroll
 		if x1+w1 >= x2 and x1 <= x2+w2 and y1+h1 >= y2 and y1 <= y2+h2 then
 			--force push if camera is inside box
 			local forcepush = false
@@ -75,7 +75,7 @@ function camerastop:collide(oldx, oldy)
 				yscroll = math.min(mapheight-1-height, y1+h1)
 			end
 
-			if xscroll ~= xscroll or yscroll ~= yscroll then
+			if oldscrollx ~= xscroll or oldscrolly ~= yscroll then
 				generatespritebatch()
 			end
 		end
