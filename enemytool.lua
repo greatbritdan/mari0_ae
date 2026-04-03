@@ -378,6 +378,11 @@ function enemytool:spawn()
 	elseif i == "gelcleanse" then
 		obj = gel:new(self.x+1, self.y+1, 5)
 		table.insert(objects["gel"], obj)
+	elseif i == "pellet" or i == "pelletgreen" then
+		local t = (i == "pelletgreen") and "green" or "yellow"
+		obj = energyball:new(self.x+0.25, self.y+0.25, "none", t)
+		obj.speedx, obj.speedy = 0, 0 -- we don't use direction so need to specify here
+		table.insert(objects["energyball"], obj)
 	else
 		obj, wasenemy, objtable = spawnenemy(i, x, y, false, "spawner")
 		--turn in the right direction
