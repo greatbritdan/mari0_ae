@@ -383,6 +383,11 @@ function enemytool:spawn()
 		obj = energyball:new(self.x+0.25, self.y+0.25, "none", t)
 		obj.speedx, obj.speedy = 0, 0 -- we don't use direction so need to specify here
 		table.insert(objects["energyball"], obj)
+	elseif i == "turretrocket" then
+		obj = turretrocket:new(self.x+0.34375, self.y+0.34375, 0, "none")
+		obj.speedx = 0 -- we don't use direction so need to specify here, only speedx
+		obj.animationdirection = (self.xvel < 0) and "left" or "right"
+		table.insert(objects["turretrocket"], obj)
 	else
 		obj, wasenemy, objtable = spawnenemy(i, x, y, false, "spawner")
 		--turn in the right direction
