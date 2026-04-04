@@ -15,7 +15,10 @@ end
 
 function intro_update(dt)
 	allowskip = true
-	if introprogress < introduration+blackafterintro then
+	stabsound:stop()
+	intro_finish()
+
+	--[[if introprogress < introduration+blackafterintro then
 		introprogress = introprogress + dt
 		if introprogress > introduration+blackafterintro then
 			introprogress = introduration+blackafterintro
@@ -34,7 +37,7 @@ function intro_update(dt)
 		if introprogress == introduration + blackafterintro then
 			intro_finish()
 		end
-	end
+	end]]
 end
 
 function intro_draw()
