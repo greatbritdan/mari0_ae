@@ -574,16 +574,11 @@ function menu_draw()
 			if i == 9 then if mouseonselecthold and mouseonselect == 4 then love.graphics.setColor(188, 188, 188) else love.graphics.setColor(255, 255, 255) end end
 			properprintfunc(TEXT["options"], (143-(math.ceil(utf8.len(TEXT["options"])/2)*8))*scale, 186*scale)
 			
-			if i == 9 then love.graphics.setColor(255, 255, 255) end
-			
-			--if not (not disabletips and menutipoffset > -width*16) then
-				if not (custombackground or customforeground) or hudoutline then
-					love.graphics.setColor(0, 0, 0)
-					properprint("mod by alesan99", (width*16-#("mod by alesan99")*8-7)*scale, 209*scale) --a little less intrusive
-					love.graphics.setColor(255, 255, 255)
-				end
-				properprint("mod by alesan99", (width*16-#("mod by alesan99")*8-8)*scale, 208*scale) --a little less intrusive
-			--end
+			if i == 9 then
+				love.graphics.setColor(255, 255, 255)
+				properprintbackground("mod by alesan99", (width*16-#("mod by alesan99")*8-8)*scale, 199*scale) --a little less intrusive
+				properprintbackground("tools by britdan", (width*16-#("tools by britdan")*8-8)*scale, 211*scale)
+			end
 			
 			love.graphics.translate(-tx, -ty)
 		end
