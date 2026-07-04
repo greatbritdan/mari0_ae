@@ -284,12 +284,12 @@ function editor_load(player_position) --{x, y, xscroll, yscroll}
 	
 	guielements["physicsdropdown"] = guielement:new("dropdown", 294, 117, 11, changephysics, currentphysics, "mari0", "smb", "mari0-smb2j", "smb2j", "mari0-maker", "mario maker", "portal")
 	guielements["cameradropdown"] = guielement:new("dropdown", 294, 130, 11, changecamerasetting, camerasetting, "default", "centered"--[[, "forward only"]])
-	guielements["dropshadowcheckbox"] = guielement:new("checkbox", 294, 143, toggledropshadow, dropshadow, TEXT["drop shadow"])
-	guielements["realtimecheckbox"] = guielement:new("checkbox", 294, 154, togglerealtime, realtime, TEXT["real time"])
+	guielements["dropshadowcheckbox"] = guielement:new("checkbox", 286, 143, toggledropshadow, dropshadow, TEXT["drop shadow"])
+	guielements["realtimecheckbox"] = guielement:new("checkbox", 286, 154, togglerealtime, realtime, TEXT["real time"])
 	local _, count = TEXT["real time"]:gsub("\n", '')
-	guielements["continuemusiccheckbox"] = guielement:new("checkbox", 294, guielements["realtimecheckbox"].y+11+10*count, togglecontinuemusic, continuesublevelmusic, TEXT["cont. music"])
+	guielements["continuemusiccheckbox"] = guielement:new("checkbox", 286, guielements["realtimecheckbox"].y+11+10*count, togglecontinuemusic, continuesublevelmusic, TEXT["cont. music"])
 	_, count = TEXT["cont. music"]:gsub("\n", '')
-	guielements["nolowtimecheckbox"] = guielement:new("checkbox", 294, guielements["continuemusiccheckbox"].y+11+10*count, togglenolowtime, nolowtime, TEXT["no low time"])
+	guielements["nolowtimecheckbox"] = guielement:new("checkbox", 286, guielements["continuemusiccheckbox"].y+11+10*count, togglenolowtime, nolowtime, TEXT["no low time"])
 	guielements["disablewallclippingcheckbox"] = guielement:new("checkbox", 286, guielements["nolowtimecheckbox"].y+11+10*count, togglewallclipping, disablewallclipping, TEXT["disable wall clipping"])
 
 	--MAPS
